@@ -1,3 +1,4 @@
+import os.path
 from unittest import TestCase
 from click.testing import CliRunner
 from md_click.main import cli
@@ -18,9 +19,14 @@ class TestCLI(TestCase):
 
     def test_dumps(self):
         """ Test the CLI dumps command"""
+        MODULES_PATH = os.path.realpath(os.path.join(os.path.dirname(__file__), '..'))
         resp = self.runner.invoke(
             cli,
-            args=['dumps','--baseModule=examples.app.cli', '--baseCommand=main', f'--docsPath={DOCS_DIR}']
+            args=['dumps',
+                  '--baseModule=examples.app.cli',
+                  '--baseCommand=main',
+                  f'--docsPath={DOCS_DIR}',
+                  f'--python-path={MODULES_PATH}']
         )
         assert resp.exit_code == 0, f'CLI failed. Response: {resp.stdout}'
 

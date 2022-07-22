@@ -1,10 +1,17 @@
 import click
+from click import Context
+from click.core import ParameterSource
 
 
 @click.group('namer')
 @click.option('--debug', help='Should I run on Debug?', is_flag=True)
-def main(**kwargs):
+@click.pass_context
+def main(ctx: Context, **kwargs):
     """ A namer CLI """
+    source = ctx.get_parameter_source('debug')
+    if source != ParameterSource.DEFAULT:
+        click.secho('parameter debug is not default')
+
     debug = kwargs.get('debug')
     if debug:
         click.secho('is Debug? True', color='green')

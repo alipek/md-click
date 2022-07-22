@@ -1,3 +1,5 @@
+import sys
+
 import click
 import pathlib
 import importlib
@@ -50,11 +52,11 @@ def dump_helper(base_command, docs_dir):
         options = {
             opt.name: {
                 "usage": '\n'.join(opt.opts),
-                "prompt": opt.prompt,
+                "prompt": opt.prompt if hasattr(opt, 'prompt') else None,
                 "required": opt.required,
                 "default": opt.default,
-                "help": opt.help,
-                "type": str(opt.type)
+                "help": opt.help if hasattr(opt, 'help') else None,
+                "type": __get_type_representation(opt.type)
             }
             for opt in helpdct.get('params', [])
         }
@@ -87,14 +89,24 @@ def dump_helper(base_command, docs_dir):
         with open(md_file_path, 'w') as md_file:
             md_file.write(md_template)
 
+
+def __get_type_representation(option_type):
+    if isinstance(option_type, click.File):
+        return 'File Path'
+    else:
+        return str(option_type)
+
+
 @click.group()
 def cli():
     pass
+
 
 @cli.command('dumps')
 @click.option('--baseModule', help='The base command module path to import', required=True)
 @click.option('--baseCommand', help='The base command function to import', required=True)
 @click.option('--docsPath', help='The docs dir path to write the md files', required=True)
+@click.option('--python-path', help='Additional paths for module search', required=False, multiple=True)
 def dumps(**kwargs):
     """
     # Click-md
@@ -103,6 +115,11 @@ def dumps(**kwargs):
     base_module = kwargs.get('basemodule')
     base_command = kwargs.get('basecommand')
     docs_path = kwargs.get('docspath')
+    python_path = kwargs.get('python_path')
+
+    if len(python_path) > 0:
+        for p in python_path:
+            sys.path.insert(0, p)
 
     click.secho(f'Creating a new documents from {base_module}.{base_command} into {docs_path}',
                 color='green')
